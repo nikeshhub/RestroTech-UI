@@ -9,6 +9,10 @@ import {
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import { AuthContext } from "./Context/authContext";
+import ResponsiveDrawer from "./Components/ResponsiveDrawer";
+import Menu from "./Pages/Menu";
+import Orders from "./Pages/Orders";
+import Table from "./Pages/Table";
 
 const App = () => {
   const { currentUser } = useContext(AuthContext);
@@ -19,12 +23,15 @@ const App = () => {
     }
     return children;
   };
+
   const router = createBrowserRouter([
     {
       path: "/",
       element: (
         <ProtectedRoute>
-          <Outlet />
+          <ResponsiveDrawer>
+            <Outlet />
+          </ResponsiveDrawer>
         </ProtectedRoute>
       ),
       children: [
@@ -32,19 +39,30 @@ const App = () => {
           path: "/",
           element: <Home />,
         },
+        {
+          path: "/menu",
+          element: <Menu />,
+        },
+        {
+          path: "/orders",
+          element: <Orders />,
+        },
+        {
+          path: "/tables",
+          element: <Table />,
+        },
       ],
     },
-
     {
       path: "/register",
       element: <Register />,
     },
-
     {
       path: "/login",
       element: <Login />,
     },
   ]);
+
   return <RouterProvider router={router}></RouterProvider>;
 };
 

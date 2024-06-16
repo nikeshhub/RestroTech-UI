@@ -35,6 +35,8 @@ const Menu = () => {
   });
   const [itemsToOrder, setItemsToOrder] = useState([]);
   const [quantities, setQuantities] = useState({});
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
   console.log("Quantity", quantities);
   console.log(itemsToOrder);
 
@@ -124,7 +126,12 @@ const Menu = () => {
     }));
   };
 
-  const handleClickOpen = () => {
+  const handleClickOpen = (item = null) => {
+    console.log(item);
+    if (item) {
+      setIsEditing(true);
+      setEditingItem(item);
+    }
     setOpen(true);
   };
 
@@ -181,6 +188,8 @@ const Menu = () => {
     console.log(response);
     fetchMenuData();
   };
+  console.log(isEditing);
+  console.log(editingItem);
 
   return (
     <Grid container spacing={4}>
@@ -274,7 +283,10 @@ const Menu = () => {
                       >
                         <Delete />
                       </IconButton>
-                      <IconButton color="primary">
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleClickOpen(item)}
+                      >
                         <Edit />
                       </IconButton>
                     </Box>
@@ -461,7 +473,10 @@ const Menu = () => {
 
       {/* Dialog for adding new menu item */}
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add New Menu Item</DialogTitle>
+        <DialogTitle>
+          {" "}
+          {isEditing ? "Edit Menu Item" : "Add New Menu Item"}{" "}
+        </DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -527,18 +542,20 @@ const Menu = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12}>
-              <Button variant="contained" component="label">
-                Upload File
-                <input
-                  type="file"
-                  name="photo"
-                  id="photo"
-                  hidden
-                  onChange={handleFileChange}
-                />
-              </Button>
-            </Grid>
+            {!isEditing && (
+              <Grid item xs={12}>
+                <Button variant="contained" component="label">
+                  Upload File
+                  <input
+                    type="file"
+                    name="photo"
+                    id="photo"
+                    hidden
+                    onChange={handleFileChange}
+                  />
+                </Button>
+              </Grid>
+            )}
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -546,7 +563,7 @@ const Menu = () => {
             Cancel
           </Button>
           <Button onClick={handleAddMenuItem} color="primary">
-            Add
+            {isEditing ? "Edit" : "Add"}
           </Button>
         </DialogActions>
       </Dialog>

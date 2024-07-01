@@ -22,8 +22,14 @@ import { axiosInstance } from "../Helpers/axiosInstance";
 import axios from "axios";
 import { getAuthToken } from "../Helpers/getAuthToken";
 import { CheckCircle, Delete, Edit } from "@mui/icons-material";
+import { useLocation } from "react-router-dom";
 
 const Menu = () => {
+  const location = useLocation();
+  const { selectedTable, guestCount } = location.state || {
+    selectedTable: "-",
+    guestCount: 1,
+  };
   const [open, setOpen] = useState(false);
   const [newMenuItem, setNewMenuItem] = useState({
     name: "",
@@ -62,6 +68,7 @@ const Menu = () => {
     fetchMenuData();
   }, []);
   console.log("menu", menuItems);
+  console.log(selectedTable);
 
   // const menuItems = [
   //   {
@@ -319,9 +326,9 @@ const Menu = () => {
             </Typography>
             <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
               <AccessibilityIcon sx={{ mr: 1 }} />
-              <Typography>GUESTS: 2</Typography>
+              <Typography>GUESTS: {guestCount}</Typography>
               <AttachFileIcon sx={{ ml: 4, mr: 1 }} />
-              <Typography>TABLE: 3</Typography>
+              <Typography>TABLE: {selectedTable}</Typography>
             </Box>
           </Box>
           <Box sx={{ mb: 4 }}>

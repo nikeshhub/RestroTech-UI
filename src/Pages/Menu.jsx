@@ -22,12 +22,13 @@ import { axiosInstance } from "../Helpers/axiosInstance";
 import axios from "axios";
 import { getAuthToken } from "../Helpers/getAuthToken";
 import { CheckCircle, Delete, Edit } from "@mui/icons-material";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Menu = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { selectedTable, guestCount } = location.state || {
-    selectedTable: "-",
+    selectedTable: null,
     guestCount: 1,
   };
   const [open, setOpen] = useState(false);
@@ -63,63 +64,13 @@ const Menu = () => {
       console.error("Error fetching menu data:", error);
     }
   };
+  console.log(itemsToOrder);
 
   useEffect(() => {
     fetchMenuData();
   }, []);
   console.log("menu", menuItems);
   console.log(selectedTable);
-
-  // const menuItems = [
-  //   {
-  //     name: "AKBARE WINGS",
-  //     category: "N",
-  //     price: "RS 995",
-  //     image: "./burger.jpeg",
-  //   },
-  //   {
-  //     name: "CRISPY FRIES",
-  //     category: "G",
-  //     price: "RS 250",
-  //     image: "./burger.jpeg",
-  //   },
-  //   {
-  //     name: "VEG SALAD",
-  //     category: "N",
-  //     price: "RS 550",
-  //     image: "./burger.jpeg",
-  //   },
-  //   {
-  //     name: "GARLIC BREAD",
-  //     category: "G",
-  //     price: "RS 150",
-  //     image: "./burger.jpeg",
-  //   },
-  //   {
-  //     name: "BROWN BREAD",
-  //     category: "G",
-  //     price: "RS 120",
-  //     image: "/placeholder.svg?height=200&width=200",
-  //   },
-  //   {
-  //     name: "FISH KEBAB",
-  //     category: "G",
-  //     price: "RS 450",
-  //     image: "/placeholder.svg?height=200&width=200",
-  //   },
-  //   {
-  //     name: "CHICKEN BURGER",
-  //     category: "G",
-  //     price: "RS 320",
-  //     image: "/placeholder.svg?height=200&width=200",
-  //   },
-  //   {
-  //     name: "SUKUTI BREAD",
-  //     category: "N",
-  //     price: "RS 400",
-  //     image: "/placeholder.svg?height=200&width=200",
-  //   },
-  // ];
 
   const handleAddToOrder = (item) => {
     console.log("item", item);
@@ -195,8 +146,34 @@ const Menu = () => {
     console.log(response);
     fetchMenuData();
   };
-  console.log(isEditing);
-  console.log(editingItem);
+
+  const subtotal = itemsToOrder.reduce(
+    (acc, item) => acc + item.price * (quantities[item.id] || 1),
+    0
+  );
+  const serviceCharge = subtotal * 0.1;
+  const total = subtotal + serviceCharge;
+
+  const handleCancelOrder = () => {
+    setItemsToOrder([]);
+    setQuantities({});
+  };
+
+  const handleSendOrder = async () => {
+    try {
+      await axiosInstance.post("http://localhost:8000/order", {
+        tableNumber: selectedTable,
+        items: itemsToOrder.map((item) => ({
+          menuItem: item._id,
+          quantity: quantities[item._id] || 1,
+        })),
+      });
+      handleCancelOrder();
+      alert("Order sent successfully!");
+    } catch (error) {
+      console.error("Error sending order:", error);
+    }
+  };
 
   return (
     <Grid container spacing={4}>
@@ -309,6 +286,7 @@ const Menu = () => {
         </Grid>
       </Grid>
       {/* Right side: Order details */}
+
       <Grid item xs={4}>
         <Box
           sx={{
@@ -320,62 +298,64 @@ const Menu = () => {
             overflowY: "auto",
           }}
         >
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-              ORDER #6
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-              <AccessibilityIcon sx={{ mr: 1 }} />
-              <Typography>GUESTS: {guestCount}</Typography>
-              <AttachFileIcon sx={{ ml: 4, mr: 1 }} />
-              <Typography>TABLE: {selectedTable}</Typography>
-            </Box>
-          </Box>
-          <Box sx={{ mb: 4 }}>
-            {itemsToOrder?.map((item) => (
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  py: 2,
-                  borderBottom: "1px solid #ccc",
-                }}
-              >
-                <Typography>{item.name}</Typography>
-                <Box>
-                  <TextField
-                    type="number"
-                    label="Quantity"
-                    value={quantities[item.id] || 1}
-                    onChange={(e) =>
-                      setQuantities((prevQuantities) => ({
-                        ...prevQuantities,
-                        [item.id]: parseInt(e.target.value) || 1,
-                      }))
-                    }
-                    sx={{
-                      "& .MuiInputBase-input": {
-                        fontSize: 10,
-                        // height: 4,
-                        width: 70,
-                        padding: 1,
-                      },
-                    }}
-                    InputProps={{
-                      inputProps: {
-                        min: 1,
-                      },
-                    }}
-                    size="small"
-                    variant="outlined"
-                  />
-                  <Typography className="ml-4">
-                    {item.price * (quantities[item.id] || 1)}
-                  </Typography>
+          {selectedTable ? (
+            <>
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="h4" sx={{ fontWeight: "bold" }}>
+                  ORDER #6
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+                  <AccessibilityIcon sx={{ mr: 1 }} />
+                  <Typography>GUESTS: {guestCount}</Typography>
+                  <AttachFileIcon sx={{ ml: 4, mr: 1 }} />
+                  <Typography>TABLE: {selectedTable}</Typography>
                 </Box>
               </Box>
-            ))}
-            {/* <Box
+              <Box sx={{ mb: 4 }}>
+                {itemsToOrder?.map((item) => (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      py: 2,
+                      borderBottom: "1px solid #ccc",
+                    }}
+                  >
+                    <Typography>{item.name}</Typography>
+                    <Box>
+                      <TextField
+                        type="number"
+                        label="Quantity"
+                        value={quantities[item.id] || 1}
+                        onChange={(e) =>
+                          setQuantities((prevQuantities) => ({
+                            ...prevQuantities,
+                            [item.id]: parseInt(e.target.value) || 1,
+                          }))
+                        }
+                        sx={{
+                          "& .MuiInputBase-input": {
+                            fontSize: 10,
+                            // height: 4,
+                            width: 70,
+                            padding: 1,
+                          },
+                        }}
+                        InputProps={{
+                          inputProps: {
+                            min: 1,
+                          },
+                        }}
+                        size="small"
+                        variant="outlined"
+                      />
+                      <Typography className="ml-4">
+                        {item.price * (quantities[item.id] || 1)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+                {/* <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
@@ -417,38 +397,63 @@ const Menu = () => {
                 <Typography className="ml-4">RS 250</Typography>
               </Box>
             </Box> */}
-          </Box>
-          <Box sx={{ mb: 4 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography>SUBTOTAL</Typography>
-              <Typography>RS 2,790</Typography>
-            </Box>
-            <Box
-              sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
-            >
-              <Typography>SERVICE CHARGE 10%</Typography>
-              <Typography>RS 279</Typography>
-            </Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                mt: 1,
-                fontWeight: "bold",
-              }}
-            >
-              <Typography>TOTAL</Typography>
-              <Typography>RS 3,069</Typography>
-            </Box>
-          </Box>
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Button variant="contained" color="error">
-              CANCEL ORDER
-            </Button>
-            <Button variant="contained" color="secondary">
-              SEND ORDER
-            </Button>
-          </Box>
+              </Box>
+              <Box sx={{ mb: 4 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography>SUBTOTAL</Typography>
+                  <Typography>{subtotal}</Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 1,
+                  }}
+                >
+                  <Typography>SERVICE CHARGE 10%</Typography>
+                  <Typography>{serviceCharge}</Typography>
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 1,
+                    fontWeight: "bold",
+                  }}
+                >
+                  <Typography>TOTAL</Typography>
+                  <Typography>{total}</Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleCancelOrder}
+                >
+                  CANCEL ORDER
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleSendOrder}
+                >
+                  SEND ORDER
+                </Button>
+              </Box>
+            </>
+          ) : (
+            <>
+              <Typography>Please select tables to order</Typography>
+              <Button
+                onClick={() => {
+                  navigate("/tables");
+                }}
+              >
+                Go to Table Selection
+              </Button>
+            </>
+          )}
         </Box>
       </Grid>
       {/* Bottom fixed: Category buttons */}

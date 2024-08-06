@@ -23,14 +23,19 @@ import axios from "axios";
 import { getAuthToken } from "../Helpers/getAuthToken";
 import { CheckCircle, Delete, Edit } from "@mui/icons-material";
 import { useLocation, useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
 
 const Menu = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedTable, guestCount } = location.state || {
-    selectedTable: null,
-    guestCount: 1,
-  };
+  const { selectedTable: initialSelectedTable, guestCount: initialGuestCount } =
+    location.state || {
+      selectedTable: null,
+      guestCount: 1,
+    };
+  const [selectedTable, setSelectedTable] = useState(initialSelectedTable);
+  const [guestCount, setGuestCount] = useState(initialGuestCount);
+
   const [open, setOpen] = useState(false);
   const [newMenuItem, setNewMenuItem] = useState({
     name: "",
@@ -169,15 +174,20 @@ const Menu = () => {
         })),
       });
       handleCancelOrder();
-      alert("Order sent successfully!");
+      toast.success("Order placed successfully");
+      setSelectedTable(null);
+      setGuestCount(1);
+      // alert("Order sent successfully!");
     } catch (error) {
       console.error("Error sending order:", error);
+      toast.error("Error sending order");
     }
   };
+  console.log("Items to order", itemsToOrder);
 
   return (
     <Grid container spacing={4}>
-      {/* Left side: Search and Menu items */}
+      <Toaster position="top-right" reverseOrder={false} />
       <Grid item xs={8}>
         <Box sx={{ mb: 2, display: "flex", alignItems: "center" }}>
           <TextField
@@ -302,7 +312,7 @@ const Menu = () => {
             <>
               <Box sx={{ mb: 4 }}>
                 <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                  ORDER #6
+                  ORDER
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                   <AccessibilityIcon sx={{ mr: 1 }} />
@@ -430,6 +440,7 @@ const Menu = () => {
                   variant="contained"
                   color="error"
                   onClick={handleCancelOrder}
+                  disabled={itemsToOrder.length < 1}
                 >
                   CANCEL ORDER
                 </Button>
@@ -437,6 +448,7 @@ const Menu = () => {
                   variant="contained"
                   color="secondary"
                   onClick={handleSendOrder}
+                  disabled={itemsToOrder.length < 1}
                 >
                   SEND ORDER
                 </Button>

@@ -10,10 +10,10 @@ import {
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import axios from "axios";
 import { axiosInstance } from "../Helpers/axiosInstance";
+import toast, { Toaster } from "react-hot-toast";
 
-const OrderCard = ({ order }) => (
+const OrderCard = ({ order, completeOrder }) => (
   <Card variant="outlined">
     <CardContent>
       <Grid container alignItems="center">
@@ -42,12 +42,14 @@ const OrderCard = ({ order }) => (
       <Box mt={2} display="flex" justifyContent="space-between">
         <Button
           variant="outlined"
-          color={order.status === "completed" ? "success" : "error"}
+          color={order.status === "closed" ? "success" : "error"}
           startIcon={
-            order.status === "completed" ? <CheckCircleIcon /> : <CancelIcon />
+            order.status === "closed" ? <CheckCircleIcon /> : <CancelIcon />
           }
+          disabled={order.status === "closed"}
+          onClick={() => completeOrder(order._id)}
         >
-          {order.status === "completed" ? "COMPLETED" : "PENDING"}
+          {order.status === "closed" ? "Closed" : "Complete Order"}
         </Button>
       </Box>
     </CardContent>
@@ -56,12 +58,12 @@ const OrderCard = ({ order }) => (
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
+  console.log("Orders", orders);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await axiosInstance.get("http://localhost:8000/order");
-
         setOrders(response.data.data);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -71,17 +73,32 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
-  console.log(orders);
+  const completeOrder = async (orderId) => {
+    try {
+      await axiosInstance.put(`http://localhost:8000/order/close/${orderId}`);
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId ? { ...order, status: "closed" } : order
+        )
+      );
+      toast.success("Order closed");
+    } catch (error) {
+      console.error("Error completing order:", error);
+      toast.error("Error completing order");
+    }
+  };
 
   return (
     <Container>
+      <Toaster position="top-right" reverseOrder={false} />
+
       <Typography variant="h4" gutterBottom>
         Order List
       </Typography>
       <Grid container spacing={3}>
         {orders?.map((order) => (
           <Grid item xs={12} sm={6} md={4} key={order._id}>
-            <OrderCard order={order} />
+            <OrderCard order={order} completeOrder={completeOrder} />
           </Grid>
         ))}
       </Grid>

@@ -89,14 +89,30 @@ const Menu = () => {
     }));
   };
 
-  const handleClickOpen = (item = null) => {
-    console.log(item);
+  const handleClickOpen = (item) => {
+    if (item && item.nativeEvent) {
+      item = null;
+    }
+    console.log("Item", item);
     if (item) {
       setIsEditing(true);
       setEditingItem(item);
+      setNewMenuItem(item);
+    } else {
+      setIsEditing(false);
+      setNewMenuItem({
+        name: "",
+        price: "",
+        category: "",
+        description: "",
+        estimatedTime: "",
+        photo: null,
+      });
     }
     setOpen(true);
   };
+
+  console.log("editingItem", editingItem);
 
   const handleClose = () => {
     setOpen(false);
@@ -107,7 +123,42 @@ const Menu = () => {
     setNewMenuItem((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("name", newMenuItem.name);
+    formData.append("price", newMenuItem.price);
+    formData.append("category", newMenuItem.category);
+    formData.append("description", newMenuItem.description);
+    formData.append("estimatedTime", newMenuItem.estimatedTime);
+    if (newMenuItem.photo) {
+      formData.append("file", newMenuItem.photo);
+    }
+
+    try {
+      await axiosInstance.put(
+        `http://localhost:8000/menu/${editingItem._id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${getAuthToken()}`,
+          },
+        }
+      );
+      handleClose();
+      fetchMenuData();
+      console.log("Menu item updated successfully!");
+    } catch (error) {
+      console.error("Error updating menu item:", error);
+    }
+  };
+
   const handleAddMenuItem = async (e) => {
+    if (isEditing) {
+      handleEdit(e);
+      return;
+    }
     e.preventDefault();
     const formData = new FormData();
     formData.append("name", newMenuItem.name);
@@ -184,6 +235,7 @@ const Menu = () => {
     }
   };
   console.log("Items to order", itemsToOrder);
+  console.log("Quantities", quantities);
 
   return (
     <Grid container spacing={4}>

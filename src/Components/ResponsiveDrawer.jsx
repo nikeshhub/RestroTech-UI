@@ -1,11 +1,10 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
 import Divider from "@mui/material/Divider";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -19,31 +18,33 @@ import FastfoodIcon from "@mui/icons-material/Fastfood";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import TableBarIcon from "@mui/icons-material/TableBar";
 import { Link, Outlet } from "react-router-dom";
-import { Person, UsbRounded } from "@mui/icons-material";
+import { Person } from "@mui/icons-material";
+import { Menu, MenuItem } from "@mui/material";
 import { AuthContext } from "../Context/authContext";
 
 const drawerWidth = 240;
 
 function ResponsiveDrawer(props) {
-  const { currentUser } = useContext(AuthContext);
-  console.log(":::::::::::USER:::::::::", currentUser);
+  const { currentUser, logout } = useContext(AuthContext);
   const { window } = props;
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [isClosing, setIsClosing] = React.useState(false);
-
-  const handleDrawerClose = () => {
-    setIsClosing(true);
-    setMobileOpen(false);
-  };
-
-  const handleDrawerTransitionEnd = () => {
-    setIsClosing(false);
-  };
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   const handleDrawerToggle = () => {
-    if (!isClosing) {
-      setMobileOpen(!mobileOpen);
-    }
+    setMobileOpen(!mobileOpen);
+  };
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleLogout = () => {
+    logout();
+    handleMenuClose();
   };
 
   const drawer = (
@@ -51,22 +52,12 @@ function ResponsiveDrawer(props) {
       <Toolbar />
       <Divider />
       <List>
-        {/* {["Home", "Menu", "Tables", "Orders"].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))} */}
         {[
           { text: "Home", path: "/", icon: <HomeIcon /> },
           { text: "Menu", path: "/menu", icon: <FastfoodIcon /> },
           { text: "Tables", path: "/tables", icon: <TableBarIcon /> },
           { text: "Orders", path: "/orders", icon: <ShoppingCartIcon /> },
-        ].map((item, index) => (
+        ].map((item) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton component={Link} to={item.path}>
               <ListItemIcon>{item.icon}</ListItemIcon>
@@ -75,19 +66,6 @@ function ResponsiveDrawer(props) {
           </ListItem>
         ))}
       </List>
-      {/* <Divider />
-      <List>
-        {["Kitchen Display", "All orders"].map((text, index) => (
-          <ListItem key={text} disablePadding>
-            <ListItemButton>
-              <ListItemIcon>
-                {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List> */}
     </div>
   );
 
@@ -123,19 +101,24 @@ function ResponsiveDrawer(props) {
               gap: 3,
             }}
           >
-            <>
-              <Typography
-                variant="h6"
-                noWrap
-                component="div"
-                sx={{ color: "black" }}
-              >
-                {`Hello ${currentUser.name}`}
-              </Typography>
-              <IconButton>
-                <Person color="action" fontSize="large" />
-              </IconButton>
-            </>
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{ color: "black" }}
+            >
+              {`Hello ${currentUser.name}`}
+            </Typography>
+            <IconButton onClick={handleMenuOpen}>
+              <Person color="action" fontSize="large" />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              <MenuItem onClick={handleLogout}>Logout</MenuItem>
+            </Menu>
           </Box>
         </Toolbar>
       </AppBar>
@@ -149,8 +132,7 @@ function ResponsiveDrawer(props) {
           container={container}
           variant="temporary"
           open={mobileOpen}
-          onTransitionEnd={handleDrawerTransitionEnd}
-          onClose={handleDrawerClose}
+          onClose={handleDrawerToggle}
           ModalProps={{
             keepMounted: true,
           }}

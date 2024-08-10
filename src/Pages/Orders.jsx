@@ -7,6 +7,10 @@ import {
   Typography,
   Button,
   Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -28,7 +32,7 @@ const OrderCard = ({ order, completeOrder }) => (
         <Box key={index} mt={2}>
           <Grid container>
             <Grid item xs={8}>
-              <Typography>{item.menuItem.name}</Typography>
+              <Typography>{item?.menuItem?.name}</Typography>
               <Typography color="textSecondary">
                 Quantity: {item.quantity}
               </Typography>
@@ -58,7 +62,7 @@ const OrderCard = ({ order, completeOrder }) => (
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  console.log("Orders", orders);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -88,6 +92,15 @@ const Orders = () => {
     }
   };
 
+  const handleStatusFilterChange = (event) => {
+    setStatusFilter(event.target.value);
+  };
+
+  const filteredOrders = orders.filter((order) => {
+    if (statusFilter === "all") return true;
+    return order.status === statusFilter;
+  });
+
   return (
     <Container>
       <Toaster position="top-right" reverseOrder={false} />
@@ -95,8 +108,24 @@ const Orders = () => {
       <Typography variant="h4" gutterBottom>
         Order List
       </Typography>
+
+      <Box display="flex" justifyContent="flex-end" mb={2}>
+        <FormControl variant="outlined" size="small">
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={statusFilter}
+            onChange={handleStatusFilterChange}
+            label="Status"
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="pending">Pending</MenuItem>
+            <MenuItem value="closed">Closed</MenuItem>
+          </Select>
+        </FormControl>
+      </Box>
+
       <Grid container spacing={3}>
-        {orders?.map((order) => (
+        {filteredOrders.map((order) => (
           <Grid item xs={12} sm={6} md={4} key={order._id}>
             <OrderCard order={order} completeOrder={completeOrder} />
           </Grid>

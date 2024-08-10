@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import logo from "../logo.png";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -10,9 +11,13 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
+    confirmPassword: "",
     address: "",
     phoneNumber: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,10 +27,21 @@ const Register = () => {
     });
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add form submission logic here
-    console.log("Form submitted:", formData);
+
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -34,7 +50,9 @@ const Register = () => {
       );
 
       toast.success("User successfully created");
-      navigate("/login");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
     } catch (error) {
       console.log("error registering", error);
       toast.error(error.message);
@@ -46,7 +64,7 @@ const Register = () => {
       <div className="flex w-full max-w-4xl bg-white rounded-lg shadow-md">
         <div className="w-1/2 flex flex-col items-center justify-center p-8 bg-teal-600 rounded-l-lg">
           <img src={logo} alt="RestroTech Logo" className="w-24 mb-4" />
-          <p className="text-3xl font-bold text-center text-white  mb-2">
+          <p className="text-3xl font-bold text-center text-white mb-2">
             <span>WELCOME</span> <br /> to <br />
             <span className="text-orange-400"> RESTROTECH</span>
           </p>
@@ -132,15 +150,48 @@ const Register = () => {
               >
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  required
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                />
+                <span
+                  className="absolute inset-y-0 right-0 flex items-center px-2 cursor-pointer"
+                  onClick={togglePasswordVisibility}
+                >
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </span>
+              </div>
+            </div>
+            <div className="mb-6">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
+                />
+                <span
+                  className="absolute inset-y-0 right-0 flex items-center px-2 cursor-pointer"
+                  onClick={toggleConfirmPasswordVisibility}
+                >
+                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                </span>
+              </div>
             </div>
             <div className="flex items-center justify-between">
               <button

@@ -175,9 +175,9 @@ const Home = () => {
             <TableBody>
               {paginatedOrders.map((order, index) => (
                 <TableRow key={index}>
-                  <TableCell>{order.tableNumber.number}</TableCell>
+                  <TableCell>{order?.tableNumber?.number}</TableCell>
                   <TableCell>
-                    {order.items.map((item) => item.menuItem.name).join(", ")}
+                    {order.items.map((item) => item?.menuItem?.name).join(", ")}
                   </TableCell>
                   <TableCell>Rs. {order.totalPrice}</TableCell>
                   <TableCell>{order.status}</TableCell>

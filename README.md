@@ -2,7 +2,7 @@
 
 A React-based frontend for RestroTech, providing tailored interfaces for restaurant staff to manage menus, tables, orders, and kitchen operations.
 
-[![Demo Video](https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+[![Demo Video](https://img.youtube.com/vi/cTUpIRAgCNM/maxresdefault.jpg)](https://www.youtube.com/watch?v=cTUpIRAgCNM)
 
 ## Features
 
